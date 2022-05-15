@@ -4,7 +4,7 @@ Archivio storico dei confini geografici dei Comuni Italiani in formato digitale 
 
 Contiene inoltre:
  - una *data.table* `comuni` che elenca tutti i Comuni (sigla variabile: `CMN`) divisi per anno e con corrispondente località superiori: Provincia (`PRV`), Regione (`RGN`), Ripartizione (`RPT`). Include inoltre alcune caratteristiche geografiche, come area, perimetro e coordinate del centroide geometrico
- - una funzione `estrai_comune` che serve non solo a filtrare uno piu comuni, ma restituisce anche su richiesta una mappa interattiva [leaflet]().
+ - una funzione `estrai_comune` che serve non solo a filtrare uno piu comuni, ma restituisce anche su richiesta una mappa interattiva [leaflet](https://leafletjs.com/).
 
 ### Risorse
 
