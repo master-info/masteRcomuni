@@ -1,0 +1,16 @@
+Package: masteRcomuni
+Type: Package
+Date: 2022-05-16
+Title: Crea un pacchetto *R* base
+Version: 0.1.0
+Authors@R: person("Luca", "Valnegri", email = "l.valnegri@datamaps.co.uk", role = c("aut", "cre"))
+Description: Inserire descrizione (oltre 100 caratteri, con almeno due frasi, un punto da qualche parte). Proprietary.
+License: file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.0)
+Imports:
+  data.table,
+  sf
+Suggests:
+LazyData: true
+RoxygenNote: 7.1.2
