@@ -88,41 +88,67 @@ assign(fn, yz)
 save( list = fn, file = file.path('data', paste0(fn, '.rda')), version = 3, compress = 'gzip' )
 
 # TABELLA PROVINCIE
-ypt <- data.table()
-for(x in 2001:2014){
+y <- data.table()
+for(x in 2015:2022){
     message('Elaboro Province anno ' , x)
-    ypt <- rbindlist(list(
-                ypt,
+    y <- rbindlist(list(
+                y,
                 data.table(
                     anno = x,
                     st_read(file.path(ext_path, 'confini', 'ISTAT', x, 'PRV.shp'), quiet = TRUE) |> 
                         st_drop_geometry() |> 
-                        subset(select = c('COD_RIP', 'COD_REG', 'COD_PROV', 'DEN_PROV', 'SIGLA')) |> 
-                        dplyr::rename(RPT=1, RGN=2, PRV=3, PRVd=4, PRVs=5) |> 
+                        subset(select = c('COD_RIP', 'COD_REG', 'COD_PROV', 'DEN_PROV', 'DEN_CM', 'SIGLA')) |> 
+                        dplyr::rename(RPT=1, RGN=2, PRV=3, PRVd1=4, PRVd2=5, PRVs=6) |> 
                         dplyr::arrange(PRV) |> 
                         as.data.table()
                 )
     ))
 }
-for(x in 2015:2022){
+y[, PRVd := ifelse(PRVd1 == '-', PRVd2, PRVd1)][, c('PRVd1', 'PRVd2') := NULL]
+for(x in 2001:2014){
     message('Elaboro Province anno ' , x)
-    rbindlist(list(
-        anno = yp,
-        st_read(file.path(ext_path, 'confini', 'ISTAT', x, 'PRV.shp'), quiet = TRUE) |> 
-            st_drop_geometry() |> 
-            subset(select = c('COD_RIP', 'COD_REG', 'COD_PROV', 'DEN_PROV', 'DEN_CM', 'SIGLA')) |> 
-            dplyr::rename(RPT=1, RGN=2, PRV=3, PRVd=4, PRVs=5) |> 
-            dplyr::arrange(PRV) |> 
-            as.data.table()
-    ))
+    y <- rbindlist(list(
+            y,
+            data.table(
+                anno = x,
+                st_read(file.path(ext_path, 'confini', 'ISTAT', x, 'PRV.shp'), quiet = TRUE) |> 
+                    st_drop_geometry() |> 
+                    subset(select = c('COD_RIP', 'COD_REG', 'COD_PROV', 'DEN_PROV', 'SIGLA')) |> 
+                    dplyr::rename(RPT=1, RGN=2, PRV=3, PRVd=4, PRVs=5) |> 
+                    dplyr::arrange(PRV) |> 
+                    as.data.table()
+            )
+    ), use.names = TRUE)
 }
+y <- unique(masteRgeo::comuni[, .(RGN = as.numeric(RGN), RGNd)])[y, on = 'RGN']
+y <- unique(masteRgeo::comuni[, .(RPT = as.numeric(RPT), RPTd)])[y, on = 'RPT']
 
-yy <- unique(masteRgeo::comuni[, .(RGN, RGNd)])
+yc <- rbindlist(lapply(
+        yn,
+        \(x)
+            data.table(
+                x,
+                st_read(file.path(ext_path, 'confini', 'ISTAT', x, 'PRV.shp'), quiet = TRUE) |> 
+                    st_drop_geometry() |> 
+                    subset(select = c(CMN = 'COD_PROV')),
+                suppressWarnings(
+                    st_read(file.path(ext_path, 'confini', 'ISTAT', x, 'PRV.shp'), quiet = TRUE) |> 
+                    st_centroid() |> 
+                    st_transform(4326) |> 
+                    st_coordinates()
+                )
+            )
+))
+setnames(yc, c('anno', 'PRV', 'x_lon', 'y_lat'))
+y <- yc[y, on = c('anno', 'PRV')]
+setcolorder(y, c('anno', 'PRV', 'PRVd', 'PRVs', 'RGN', 'RGNd', 'RPT', 'RPTd'))
+setorderv(y, c('anno', 'PRV'))
 
-yy <- unique(masteRgeo::comuni[, .(RPT, RPTd)])
-
-
-fwrite(ypt, './data-raw/csv/provincie.csv')
+fwrite(y, './data-raw/csv/provincie.csv')
 fn <- 'provincie'
-assign(fn, ypt)
+assign(fn, y)
 save( list = fn, file = file.path('data', paste0(fn, '.rda')), version = 3, compress = 'gzip' )
+dbm_do('comuni', 'w', 'provincie', y)
+
+rm(list = ls())
+gc()
