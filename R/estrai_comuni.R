@@ -18,8 +18,8 @@
 #' @export
 #'
 estrai_comuni <- function(x, anno = 22, tp = 'CMN', sup = FALSE, mappa = FALSE){
-    tps <- substr(tp, 1, 1)
-    tp <- switch(tps, 'C' = 'CMN', 'P' = 'PRV', 'R' = 'RGN', 'Z' = 'RPT')
+    tps <- toupper(substr(tp, 1, 1))
+    tp <- switch(tps, 'C' = 'CMN', 'P' = 'PRV', 'R' = 'RGN', 'Z' = 'RPT', stop(tps, ': Tipo non riconosciuto'))
     as <- substring(anno, nchar(anno) - 1)
     a <- paste0('20', as)
     if(sup){
